@@ -1,0 +1,70 @@
+extern "C" {
+
+    #include <erl_nif.h>
+    #include "tera_crypto.hpp"
+
+    static ErlNifResourceType* TERA_CRYPTO_RESOURCE;
+
+    typedef struct
+    {
+        TeraCrypto* protocol;
+    } tera_handle;
+
+    ERL_NIF_TERM tera_new_protocol(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+    ERL_NIF_TERM tera_encode(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+    
+    void tera_protocol_destroy(ErlNifEnv* env, void* arg);
+		int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info);
+
+		static ErlNifFunc nif_funcs[] = {
+				{"new",           1, tera_new_protocol},
+				{"encode",        2, tera_encode}
+		};
+
+    ERL_NIF_INIT(tera_crypto, nif_funcs, &on_load, NULL, NULL, NULL);
+};
+
+ERL_NIF_TERM tera_new_protocol(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary str;
+
+    if (!enif_inspect_binary(env, argv[0], &str)) {
+	    return enif_make_badarg(env);
+    }
+
+    if (str.size != 170) {
+      return enif_make_badarg(env);
+    }
+
+		tera_handle* handle = (tera_handle*) enif_alloc_resource(TERA_CRYPTO_RESOURCE, sizeof(tera_handle));
+		handle->protocol = new TeraCrypto(str.data);
+		ERL_NIF_TERM result = enif_make_resource(env, handle);
+		enif_release_resource(handle);
+		return enif_make_tuple2(env, enif_make_atom(env, "ok"), result);
+}
+
+ERL_NIF_TERM tera_encode(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary buffer;
+    tera_handle* handle;
+
+    if (!enif_get_resource(env, argv[0], TERA_CRYPTO_RESOURCE, (void**)&handle)) {
+      return enif_make_badarg(env);
+    }
+
+    if (!enif_inspect_binary(env, argv[1], &buffer)) {
+	    return enif_make_badarg(env);
+    }
+
+    handle->protocol->apply(buffer.data, buffer.size);
+    return enif_make_binary(env, &buffer);
+}
+
+void tera_protocol_destroy(ErlNifEnv* env, void* arg) {
+    tera_handle* handle = (tera_handle*) arg;
+    delete handle->protocol;
+}
+
+int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info) {
+    ErlNifResourceFlags flags = (ErlNifResourceFlags) (ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
+    TERA_CRYPTO_RESOURCE = enif_open_resource_type(env, NULL, "tera_protocol_resource", &tera_protocol_destroy, flags, 0);
+    return 0;
+}

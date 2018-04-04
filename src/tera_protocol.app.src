@@ -1,0 +1,10 @@
+{application, tera_protocol, [
+  {description, "Tera protocol cryptor"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+    kernel,
+    stdlib
+  ]},
+  {env, []}
+]}.
