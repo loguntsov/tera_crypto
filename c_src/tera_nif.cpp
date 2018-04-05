@@ -1,14 +1,16 @@
+#include <erl_nif.h>
+#include <cstring>
+#include <iostream>
+
+#include "tera_crypto.hpp"
+
+typedef struct {
+    TeraCrypto* protocol;
+} tera_handle;
+
 extern "C" {
 
-    #include <erl_nif.h>
-    #include "tera_crypto.hpp"
-
     static ErlNifResourceType* TERA_CRYPTO_RESOURCE;
-
-    typedef struct
-    {
-        TeraCrypto* protocol;
-    } tera_handle;
 
     ERL_NIF_TERM tera_new_protocol(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
     ERL_NIF_TERM tera_encode(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
@@ -54,8 +56,13 @@ ERL_NIF_TERM tera_encode(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
 	    return enif_make_badarg(env);
     }
 
-    handle->protocol->apply(buffer.data, buffer.size);
-    return enif_make_binary(env, &buffer);
+    ERL_NIF_TERM result;
+    unsigned char * q = enif_make_new_binary(env, buffer.size, &result);
+    memcpy(q, buffer.data, buffer.size);
+
+    handle->protocol->apply(q, buffer.size);
+
+    return result;
 }
 
 void tera_protocol_destroy(ErlNifEnv* env, void* arg) {

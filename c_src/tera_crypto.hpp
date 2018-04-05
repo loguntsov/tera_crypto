@@ -10,8 +10,9 @@ class TeraCrypto {
 			  sum = 0;
 
 	public:
-	  TeraCrypto(const unsigned char* data);
-    void apply(unsigned char* data, unsigned int length);
+    TeraCrypto(const unsigned char* data);
+	  void apply(unsigned char* data, unsigned int length);
+    void print();	  
 	private:
 	  void next();
 };
