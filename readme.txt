@@ -1,5 +1,9 @@
 Erlang NIF: Tera Protocol Encryptor
 
+BUILD
+
+To build it you should place rebar3 to root of this project.
+
 USAGE
 
 make all -- compile
