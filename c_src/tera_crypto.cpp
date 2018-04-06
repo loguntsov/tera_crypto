@@ -10,7 +10,7 @@
 #include <iostream>
 #include "tera_crypto.hpp"
 
-TeraCrypto::TeraCrypto(const unsigned char* data) {
+TeraCrypto::TeraCrypto(const unsigned int* data) {
 
   for(int i = 0; i < 55; i++) {
     d1[i] = data[i];

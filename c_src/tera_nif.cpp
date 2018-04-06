@@ -33,12 +33,12 @@ ERL_NIF_TERM tera_new_protocol(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
 	    return enif_make_badarg(env);
     }
 
-    if (str.size != 170) {
+    if (str.size != 680) {
       return enif_make_badarg(env);
     }
 
 		tera_handle* handle = (tera_handle*) enif_alloc_resource(TERA_CRYPTO_RESOURCE, sizeof(tera_handle));
-		handle->protocol = new TeraCrypto(str.data);
+		handle->protocol = new TeraCrypto((unsigned int *) str.data);
 		ERL_NIF_TERM result = enif_make_resource(env, handle);
 		enif_release_resource(handle);
 		return enif_make_tuple2(env, enif_make_atom(env, "ok"), result);
